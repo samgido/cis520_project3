@@ -9,15 +9,32 @@
 // You might find this handy. I put it around unused parameters, but you should
 // remove it before you submit. Just allows things to compile initially.
 #define UNUSED(x) (void)(x)
+struct block_store
+{
+	bitmap_t *map;
+	uint8_t data[BLOCK_STORE_NUM_BYTES];
+};
+
 
 block_store_t *block_store_create()
 {
-	return NULL;
+	block_store_t* bs = calloc(1, sizeof(block_store_t);
+	if(bs == NULL)
+		return NULL;
+	bs->map = bitmap_create(BITMAP_SIZE_BITS);
+	if(bs->map == NULL)
+		return NULL;
+	return bs;
 }
 
 void block_store_destroy(block_store_t *const bs)
 {
-	UNUSED(bs);
+//	UNUSED(bs);
+	if(bs == NULL)
+		return;
+	free(bs->map);
+	free(bs->data);
+	free(bs);
 }
 
 size_t block_store_allocate(block_store_t *const bs)
