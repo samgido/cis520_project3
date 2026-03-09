@@ -1,3 +1,0 @@
-/homes/sjgreen/hw3/cis520_project3/hw3/build/CMakeFiles/rebuild_cache.dir
-/homes/sjgreen/hw3/cis520_project3/hw3/build/CMakeFiles/edit_cache.dir
-/homes/sjgreen/hw3/cis520_project3/hw3/build/CMakeFiles/hw3_test.dir
