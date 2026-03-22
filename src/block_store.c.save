@@ -22,19 +22,9 @@ block_store_t *block_store_create()
 	block_store_t* bs = calloc(1, sizeof(block_store_t));
 	if(bs == NULL)
 		return NULL;
-	/*bs->map = bitmap_create(BLOCK_STORE_NUM_BLOCKS);
+	bs->map = bitmap_create(BITMAP_SIZE_BITS);
 	if(bs->map == NULL)
 		return NULL;
-	return bs;*/
-
-	//found the rest of this function on github
-	bs->map =bitmap_overlay(BITMAP_SIZE_BITS,bs->data+( BITMAP_START_BLOCK*BLOCK_SIZE_BYTES)); //creates
-	if(bs->map == NULL)
-		return NULL;
-	for(size_t i = BITMAP_START_BLOCK; i < BITMAP_START_BLOCK +BITMAP_NUM_BLOCKS; i++)
-	{
-		block_store_request(bs, i);
-	}
 	return bs;
 }
 
@@ -71,7 +61,7 @@ size_t block_store_allocate(block_store_t *const bs)
 bool block_store_request(block_store_t *const bs, const size_t block_id)
 {
 	//test valid parameters
-	if(bs == NULL || block_id >= BLOCK_STORE_NUM_BLOCKS)
+	if(bs == NULL || block_id >= BITMAP_SIZE_BITS)
 		return false;
 	if(bs->map == NULL)
 		return false;
@@ -88,7 +78,7 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
 //checkpoint 2
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
-	if(bs == NULL || block_id >= BLOCK_STORE_NUM_BLOCKS)
+	if(bs == NULL || block_id >= BITMAP_SIZE_BITS)
 		return;
 	if(bs->map == NULL)
 		return;
