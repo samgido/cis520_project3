@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "bitmap.h"
 #include "block_store.h"
@@ -95,16 +96,38 @@ void block_store_release(block_store_t *const bs, const size_t block_id)
 	bitmap_reset(bs->map, block_id);
 }
 
+//checkpoint 3
 size_t block_store_get_used_blocks(const block_store_t *const bs)
 {
-	UNUSED(bs);
-	return 0;
+	if (bs == NULL || bs->map == NULL)
+		return SIZE_MAX;
+
+	size_t used_count = 0; 
+
+	for (size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; ++i) 
+	{
+		if (bitmap_test(bs->map, i)) 
+			used_count++;
+	}
+
+	return used_count;
 }
 
+//checkpoint 3
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
-	UNUSED(bs);
-	return 0;
+	if (bs == NULL || bs->map == NULL)
+		return SIZE_MAX;
+
+	size_t free_count = 0; 
+
+	for (size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; ++i) 
+	{
+		if (!bitmap_test(bs->map, i)) 
+			free_count++;
+	}
+
+	return free_count;
 }
 
 //checkpoint 2
@@ -113,12 +136,23 @@ size_t block_store_get_total_blocks()
 	return BITMAP_SIZE_BITS;
 }
 
+//checkpoint 3
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-	UNUSED(bs);
-	UNUSED(block_id);
-	UNUSED(buffer);
-	return 0;
+	if(bs == NULL || buffer == NULL)
+		return 0;
+
+	if (block_id >= BLOCK_STORE_NUM_BLOCKS)
+		return 0;
+
+	if(bs->map == NULL)
+		return 0;
+
+	size_t block_offset = block_id * BLOCK_SIZE_BYTES;
+
+	memcpy(buffer, bs->data + block_offset, BLOCK_SIZE_BYTES);
+
+	return BLOCK_SIZE_BYTES;
 }
 
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
