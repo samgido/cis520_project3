@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "bitmap.h"
 #include "block_store.h"
@@ -113,12 +114,23 @@ size_t block_store_get_total_blocks()
 	return BITMAP_SIZE_BITS;
 }
 
+//checkpoint 3
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-	UNUSED(bs);
-	UNUSED(block_id);
-	UNUSED(buffer);
-	return 0;
+	if(bs == NULL || buffer == NULL)
+		return 0;
+
+	if (block_id >= BLOCK_STORE_NUM_BLOCKS)
+		return 0;
+
+	if(bs->map == NULL)
+		return 0;
+
+	size_t block_offset = block_id * BLOCK_SIZE_BYTES;
+
+	memcpy(buffer, bs->data + block_offset, BLOCK_SIZE_BYTES);
+
+	return BLOCK_SIZE_BYTES;
 }
 
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
