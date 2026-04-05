@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "bitmap.h"
 #include "block_store.h"
@@ -155,23 +157,84 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
 	return BLOCK_SIZE_BYTES;
 }
 
+
+//writes data from buffer into a block
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
 {
-	UNUSED(bs);
-	UNUSED(block_id);
-	UNUSED(buffer);
-	return 0;
+		// Validate inputs
+	if(bs == NULL || buffer == NULL)
+		return 0;
+
+	if(block_id >= BLOCK_STORE_NUM_BLOCKS)
+		return 0;
+
+	if(bs->map == NULL)
+		return 0;
+
+	// Calculate the starting position of the block
+	size_t block_offset = block_id * BLOCK_SIZE_BYTES;
+
+	// Copy data from buffer to block store
+	memcpy(bs->data + block_offset, buffer, BLOCK_SIZE_BYTES);
+
+	// Return number of bytes written
+	return BLOCK_SIZE_BYTES;
+
 }
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
-	UNUSED(filename);
-	return NULL;
+	if(filename == NULL)
+		return NULL;
+	int fd = open(filename, O_RDONLY);
+	if(fd == -1)
+		return NULL;
+	block_store_t *bs = block_store_create();
+	if(bs == NULL)
+	{
+		close(fd);
+		return NULL;
+	}
+	ssize_t bytes_read = read(fd, bs->data, BLOCK_STORE_NUM_BYTES);
+	close(fd);
+
+	if(bytes_read != BLOCK_STORE_NUM_BYTES)
+	{
+		block_store_destroy(bs);
+		return NULL;
+	}
+
+	bitmap_destroy(bs->map);
+	bs->map = bitmap_overlay(BITMAP_SIZE_BITS, bs->data + (BITMAP_START_BLOCK * BLOCK_SIZE_BYTES));
+	if(bs->map == NULL)
+	{
+		block_store_destroy(bs);
+		return NULL;
+	}
+
+	return bs;
+
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
-	UNUSED(bs);
-	UNUSED(filename);
-	return 0;
+	// Validate inputs
+	if(bs == NULL || filename == NULL)
+		return 0;
+	// Open file for writing (create if doesn't exist, truncate if exists)
+	int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if(fd == -1)
+		return 0;
+
+	// Write the entire data array to file
+	ssize_t bytes_written = write(fd, bs->data, BLOCK_STORE_NUM_BYTES);
+
+	// Close the file
+	close(fd);
+
+	// Return number of bytes written
+	if(bytes_written < 0)
+		return 0;
+
+	return (size_t)bytes_written;
 }
